@@ -1,1 +1,86 @@
+#include <rgb_lcd.h>
+
+rgb_lcd lcd;
+
+int ledPin = 4;          // led pin                    
+int trigPin = 6;         // ultrasonic trig pin
+int echoPin = 7;         // ultrasonic echo pin
+int buzzerPin = 3;       // buzzer pin
+int motionPin = 8;       // motion sensor pin
+
+// declaring variables
+long duration;                 // used to calc ultrasonic sensor distance
+int currentDistance;           // current distance measured by the ultrasonic sensor
+int previousDistance;          // previous distance measured by the ultrasonic sensor
+int pointCount = 0;            // point counter or object detection counter 
+bool motionDetected = false;   // flag to track if motion has already been detected
+
+void setup() {
+  lcd.begin(16, 2);
+  pinMode(ledPin, OUTPUT);
+  pinMode(trigPin, OUTPUT); 
+  pinMode(echoPin, INPUT); 
+  pinMode(buzzerPin, OUTPUT);
+  pinMode(motionPin, INPUT);
+  Serial.begin(9600); 
+}
+
+void loop() {
+  // ULTRASONIC SENSOR stuff (used to prep sensor)
+  digitalWrite(trigPin, LOW);             // clears the trigPin
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);            // sets the trigPin on HIGH state for 10 micro seconds
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);             // reads the echoPin, returns the sound wave travel time in microseconds
+  duration = pulseIn(echoPin, HIGH);
+  currentDistance = duration * 0.034 / 2; // calc the distance
+
+  // 1ST ROW >> full/notfull + light & point count 
+  lcd.setCursor(0, 0);          
+  if (currentDistance <= 20) {  // bins full (ultrasonic detects less/equal than cm)
+    // Blink LED
+    digitalWrite(ledPin, HIGH);
+    delay(250);
+    digitalWrite(ledPin, LOW);
+    delay(250);
+    
+    lcd.clear();
+    lcd.print("FULL | ");       // print FULL to lcd screen
+  }
+  else {                        // bins not full (ultrasonic detects greater than 10cm)
+    digitalWrite(ledPin, LOW);  // light OFF
+    lcd.clear();
+    lcd.print("     ");   // NOT FULL
+  }
+
+  lcd.print(digitalRead(motionPin) == HIGH ? "WAIT..." : "SHOOT!"); // display motion status
+
+  // INCREMENTING POINTS BY 10
+  if (digitalRead(motionPin) == HIGH && !motionDetected) {       // if statement makes sure theres no motion again before incrementing motion counter
+    pointCount = pointCount + 10;                                // increment motion counter
+    motionDetected = true;                                       // set motionDetected flag to true
+
+    // buzzer
+    analogWrite(buzzerPin, 50);
+    delay(100);
+    analogWrite(buzzerPin, 0);
+    delay(50);
+    analogWrite(buzzerPin, 50);
+    delay(100);
+    analogWrite(buzzerPin, 0);
+    delay(50);
+    analogWrite(buzzerPin, 50);
+    delay(400);
+    analogWrite(buzzerPin, 0);
+  }
+  else if (digitalRead(motionPin) == LOW) {                // detects no motion
+    motionDetected = false;                                // reset motionDetected flag
+  }
+  
+  lcd.setCursor(0, 1);
+  lcd.print("Points: ");
+  lcd.print(pointCount); // display point count
+
+  delay(100);
+}
 
