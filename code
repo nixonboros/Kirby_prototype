@@ -37,7 +37,7 @@ void loop() {
 
   // 1ST ROW >> full/notfull + light & point count 
   lcd.setCursor(0, 0);          
-  if (currentDistance <= 20) {  // bins full (ultrasonic detects less/equal than cm)
+  if (currentDistance <= 5) {  // bins full (ultrasonic detects less/equal than 5cm)
     // Blink LED
     digitalWrite(ledPin, HIGH);
     delay(250);
@@ -61,26 +61,29 @@ void loop() {
     motionDetected = true;                                       // set motionDetected flag to true
 
     // buzzer
-    analogWrite(buzzerPin, 50);
+    analogWrite(buzzerPin, 100); // buzz
     delay(100);
     analogWrite(buzzerPin, 0);
     delay(50);
-    analogWrite(buzzerPin, 50);
+    analogWrite(buzzerPin, 100); // buzz
     delay(100);
     analogWrite(buzzerPin, 0);
     delay(50);
-    analogWrite(buzzerPin, 50);
+    analogWrite(buzzerPin, 100); // buzz
     delay(400);
     analogWrite(buzzerPin, 0);
   }
   else if (digitalRead(motionPin) == LOW) {                // detects no motion
     motionDetected = false;                                // reset motionDetected flag
   }
-  
+
+  Serial.print(motionDetected);
+
+
   lcd.setCursor(0, 1);
   lcd.print("Points: ");
   lcd.print(pointCount); // display point count
 
   delay(100);
-}
 
+}
